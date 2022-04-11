@@ -1,0 +1,1 @@
+create index IX_89DAF169 on zemsania_Usuario (uuid_[$COLUMN_LENGTH:75$]);

@@ -1,0 +1,4 @@
+Bundle-Name: usuario
+Bundle-SymbolicName: usuario
+Bundle-Version: 1.0.0
+Export-Package: usuario.constants

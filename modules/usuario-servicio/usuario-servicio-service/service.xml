@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder dependency-injector="ds" package-path="usuario.servicio">
+	<namespace>zemsania</namespace>
+	<entity local-service="true" name="Usuario" remote-service="true" uuid="true">
+
+		<column name="userId" primary="true" type="long" />
+		<column name="userName" type="String" />
+		<column name="userSurname" type="String" />
+		<column name="userBirthdate" type="Date" />
+		<column name="userMail" type="String" />
+		<column name="creationDate" type="Date" />
+		
+	</entity>
+</service-builder>

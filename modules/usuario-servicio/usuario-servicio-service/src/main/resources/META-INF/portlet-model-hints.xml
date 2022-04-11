@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="usuario.servicio.model.Usuario">
+		<field name="uuid" type="String" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="userSurname" type="String" />
+		<field name="userBirthdate" type="Date" />
+		<field name="userMail" type="String" />
+		<field name="creationDate" type="Date" />
+	</model>
+</model-hints>
