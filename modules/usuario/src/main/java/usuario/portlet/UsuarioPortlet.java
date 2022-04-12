@@ -2,8 +2,11 @@ package usuario.portlet;
 
 import com.liferay.captcha.util.CaptchaUtil;
 import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
-import com.liferay.portal.kernel.captcha.CaptchaException;
+import com.liferay.portal.kernel.captcha.CaptchaTextException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import java.text.DateFormat;
@@ -12,11 +15,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import javax.mail.*;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.activation.*;
-
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.Portlet;
@@ -39,11 +44,7 @@ import usuario.servicio.service.UsuarioLocalServiceUtil;
 		"javax.portlet.security-role-ref=power-user,user" }, service = Portlet.class)
 public class UsuarioPortlet extends MVCPortlet {
 
-	@ProcessAction(name = "listUsuario")
-	public void listarUsuarios(ActionRequest request, ActionResponse response) {
-		List<Usuario> usuarios = UsuarioLocalServiceUtil.getUsuarios(-1, -1);
-
-	}
+	private Log log = LogFactoryUtil.getLog(this.getClass().getName());
 
 	@ProcessAction(name = "addUsuario")
 	public void addUsuario(ActionRequest request, ActionResponse response) {
@@ -65,70 +66,80 @@ public class UsuarioPortlet extends MVCPortlet {
 		usuario.setCreationDate(new java.util.Date());
 		try {
 			CaptchaUtil.check(request);
+			log.info("CAPTCHA verification successful.");
 			UsuarioLocalServiceUtil.addUsuario(usuario);
 			sendEmail(mail);
-		} catch (CaptchaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception exception) {
+			if (exception instanceof CaptchaTextException) {
+				SessionErrors.add(request, exception.getClass(), exception);
+				log.error("CAPTCHA verification failed.");
+			}
 		}
+	}
+
+	@ProcessAction(name = "getUsuarios")
+	public void getUsuarios(ActionRequest request, ActionResponse response) {
+		List<Usuario> listaUsuarios = UsuarioLocalServiceUtil.getUsuarios(0,UsuarioLocalServiceUtil.getUsuariosCount());
+		request.setAttribute("listaUsuarios", listaUsuarios);
+		response.getRenderParameters().setValue("jspPage","/mostrarUsuarios.jsp");
 	}
 	
 	private void sendEmail(String userEmail) {
-		 /// Recipient's email ID needs to be mentioned.
-        String to = userEmail;
+		/// Recipient's email ID needs to be mentioned.
+		String to = userEmail;
 
-        // Sender's email ID needs to be mentioned
-        String from = "testsometests@gmail.com";
+		// Sender's email ID needs to be mentioned
+		String from = "testsometests@gmail.com";
 
-        // Assuming you are sending email from through gmails smtp
-        String host = "smtp.gmail.com";
+		// Assuming you are sending email from through gmails smtp
+		String host = "smtp.gmail.com";
 
-        // Get system properties
-        Properties properties = System.getProperties();
+		// Get system properties
+		Properties properties = System.getProperties();
 
-        // Setup mail server
-        properties.put("mail.smtp.host", host);
-        properties.put("mail.smtp.port", "465");
-        properties.put("mail.smtp.ssl.enable", "true");
-        properties.put("mail.smtp.auth", "true");
+		// Setup mail server
+		properties.put("mail.smtp.host", host);
+		properties.put("mail.smtp.port", "465");
+		properties.put("mail.smtp.ssl.enable", "true");
+		properties.put("mail.smtp.auth", "true");
 
-        // Get the Session object.// and pass username and password
-        Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
+		// Get the Session object.// and pass username and password
+		Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
 
-            protected PasswordAuthentication getPasswordAuthentication() {
+			protected PasswordAuthentication getPasswordAuthentication() {
 
-                return new PasswordAuthentication("testsometests@gmail.com", "test$123");
+				return new PasswordAuthentication("testsometests@gmail.com", "test$123");
 
-            }
+			}
 
-        });
+		});
 
-        // Used to debug SMTP issues
-        session.setDebug(true);
+		// Used to debug SMTP issues
+		session.setDebug(true);
 
-        try {
-            // Create a default MimeMessage object.
-            MimeMessage message = new MimeMessage(session);
+		try {
+			// Create a default MimeMessage object.
+			MimeMessage message = new MimeMessage(session);
 
-            // Set From: header field of the header.
-            message.setFrom(new InternetAddress(from));
+			// Set From: header field of the header.
+			message.setFrom(new InternetAddress(from));
 
-            // Set To: header field of the header.
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+			// Set To: header field of the header.
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
 
-            // Set Subject: header field
-            message.setSubject("Bienvenido a Liferay!");
+			// Set Subject: header field
+			message.setSubject("Bienvenido a Liferay!");
 
-            // Now set the actual message
-            message.setText("Tu usuario ha sido correctamente registrado :)");
+			// Now set the actual message
+			message.setText("Tu usuario ha sido correctamente registrado :)");
 
-            System.out.println("sending...");
-            // Send message
-            Transport.send(message);
-            System.out.println("Sent message successfully....");
-        } catch (MessagingException mex) {
-            mex.printStackTrace();
-        }
+			System.out.println("sending...");
+			// Send message
+			Transport.send(message);
+			System.out.println("Sent message successfully....");
+		} catch (MessagingException mex) {
+			mex.printStackTrace();
+		}
 	}
 
 }
