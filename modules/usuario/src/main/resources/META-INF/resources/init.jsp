@@ -2,13 +2,10 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
 
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui"%><%@
-taglib
-	uri="http://liferay.com/tld/portlet" prefix="liferay-portlet"%><%@
-taglib
-	uri="http://liferay.com/tld/theme" prefix="liferay-theme"%><%@
-taglib
-	uri="http://liferay.com/tld/ui" prefix="liferay-ui"%>
+<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui"%>
+<%@ taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet"%>
+<%@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme"%>
+<%@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui"%>
 
 <liferay-theme:defineObjects />
 
@@ -30,8 +27,7 @@ taglib
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item"><a class="nav-link" href="<%=view%>">Add</a>
 			</li>
-			<li class="nav-item"><a class="nav-link"
-				href="<%="mostrarUsuarios"%>">Show</a></li>
+			<li class="nav-item"><a class="nav-link" href="<%=mostrarUsuarios%>">Show</a></li>
 		</ul>
 	</div>
 </nav>
