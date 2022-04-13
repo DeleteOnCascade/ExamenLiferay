@@ -3,12 +3,14 @@ package usuario.portlet;
 import com.liferay.captcha.util.CaptchaUtil;
 import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ParamUtil;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,6 +27,7 @@ import javax.mail.internet.MimeMessage;
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.Portlet;
+import javax.portlet.PortletException;
 import javax.portlet.ProcessAction;
 
 import org.osgi.service.component.annotations.Component;
@@ -79,11 +82,50 @@ public class UsuarioPortlet extends MVCPortlet {
 
 	@ProcessAction(name = "getUsuarios")
 	public void getUsuarios(ActionRequest request, ActionResponse response) {
-		List<Usuario> listaUsuarios = UsuarioLocalServiceUtil.getUsuarios(0,UsuarioLocalServiceUtil.getUsuariosCount());
+		List<Usuario> listaUsuarios = UsuarioLocalServiceUtil.getUsuarios(0,
+				UsuarioLocalServiceUtil.getUsuariosCount());
 		request.setAttribute("listaUsuarios", listaUsuarios);
-		response.getRenderParameters().setValue("jspPage","/mostrarUsuarios.jsp");
+		response.getRenderParameters().setValue("jspPage", "/mostrarUsuarios.jsp");
+	}
+
+	@ProcessAction(name = "updateUsuario")
+	public void actualizarUsuario(ActionRequest request,
+			ActionResponse response)  throws IOException, PortletException {
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		final Long userId = ParamUtil.getLong(request, "userId");
+		final String name = ParamUtil.getString(request, "nombreUsuario");
+		final String surname = ParamUtil.getString(request, "apellidoUsuario");
+		final Date birthDay = ParamUtil.getDate(request, "fechaNacimiento", formatter);
+		final String mail = ParamUtil.getString(request, "mailUsuario");
+		Usuario usuario = null;
+		try {
+			usuario = UsuarioLocalServiceUtil.getUsuario(userId);
+			usuario.setUserName(name);
+			usuario.setUserSurname(surname);
+			usuario.setUserBirthdate(birthDay);
+			usuario.setUserMail(mail);
+			UsuarioLocalServiceUtil.updateUsuario(usuario);
+			log.info("Usuario correctamente actualizado");	
+		} catch (NumberFormatException | PortalException e) {
+			e.printStackTrace();
+			log.error("Error al actualizar usuario");
+		}
+		getUsuarios(request,response);
 	}
 	
+	@ProcessAction(name = "deleteUsuario")
+	public void deleteUsuario(ActionRequest request, ActionResponse response) throws IOException, PortletException {
+		Long usuarioId = ParamUtil.getLong(request, "userId");
+		try {
+			UsuarioLocalServiceUtil.deleteUsuario(usuarioId);
+			log.info("Usuario borrado correctamente.");
+		} catch (PortalException e) {
+			e.printStackTrace();
+			log.error("Error al borrar usuario.");
+		}
+		getUsuarios(request, response);
+	}
+
 	private void sendEmail(String userEmail) {
 		/// Recipient's email ID needs to be mentioned.
 		String to = userEmail;
